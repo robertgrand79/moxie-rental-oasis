@@ -17,7 +17,7 @@ const AdminNewsletterManagement = () => {
       title="Newsletter Management"
       description="Create, send, and manage your newsletter campaigns"
     >
-      <div className="p-6">
+      <div className="p-0 py-4 md:p-6">
         <ModernNewsletterPage />
       </div>
     </AdminPageWrapper>

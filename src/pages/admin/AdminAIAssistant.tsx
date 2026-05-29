@@ -13,7 +13,7 @@ const AdminAIAssistant = () => {
       title="Stay Moxie Assistant"
       description="Your AI-powered assistant for content, communication, and more"
     >
-      <div className="p-6">
+      <div className="p-0 py-4 md:p-6">
         <Tabs defaultValue="general" className="w-full">
           <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="general" className="flex items-center gap-2">

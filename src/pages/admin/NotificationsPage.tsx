@@ -111,7 +111,7 @@ const NotificationsPage: React.FC = () => {
     >
       <div className="space-y-6">
         {/* Header Stats */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 md:px-0">
           <div className="flex items-center gap-4">
             <Badge variant="secondary" className="text-sm">
               {unreadCount} unread
@@ -124,6 +124,7 @@ const NotificationsPage: React.FC = () => {
             variant="outline" 
             onClick={() => markAllAsRead()}
             disabled={unreadCount === 0}
+            className="w-full sm:w-auto h-11 sm:h-9 text-sm"
           >
             <Check className="h-4 w-4 mr-2" />
             Mark all as read
@@ -131,30 +132,32 @@ const NotificationsPage: React.FC = () => {
         </div>
 
         {/* Search and Filters */}
-        <Card>
-          <CardContent className="p-4">
+        <Card className="border-0 md:border bg-transparent md:bg-card shadow-none md:shadow-sm">
+          <CardContent className="p-4 md:p-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               {/* Search */}
-              <div className="relative flex-1 max-w-md">
+              <div className="relative flex-1 max-w-md w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search notifications..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
+                  className="pl-9 h-11 md:h-9 text-base md:text-sm"
                 />
               </div>
               
               {/* Filter Tabs */}
-              <Tabs value={activeFilter} onValueChange={setActiveFilter}>
-                <TabsList>
-                  <TabsTrigger value="all">All</TabsTrigger>
-                  <TabsTrigger value="unread">Unread</TabsTrigger>
-                  <TabsTrigger value="bookings">Bookings</TabsTrigger>
-                  <TabsTrigger value="communications">Messages</TabsTrigger>
-                  <TabsTrigger value="operations">Operations</TabsTrigger>
-                  <TabsTrigger value="payments">Payments</TabsTrigger>
-                </TabsList>
+              <Tabs value={activeFilter} onValueChange={setActiveFilter} className="w-full md:w-auto">
+                <div className="w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-4 px-4 md:mx-0 md:px-0">
+                  <TabsList className="inline-flex w-max min-w-full md:min-w-0 justify-start">
+                    <TabsTrigger value="all">All</TabsTrigger>
+                    <TabsTrigger value="unread">Unread</TabsTrigger>
+                    <TabsTrigger value="bookings">Bookings</TabsTrigger>
+                    <TabsTrigger value="communications">Messages</TabsTrigger>
+                    <TabsTrigger value="operations">Operations</TabsTrigger>
+                    <TabsTrigger value="payments">Payments</TabsTrigger>
+                  </TabsList>
+                </div>
               </Tabs>
             </div>
           </CardContent>
@@ -162,18 +165,18 @@ const NotificationsPage: React.FC = () => {
 
         {/* Bulk Actions */}
         {selectedIds.size > 0 && (
-          <Card className="bg-muted/50">
+          <Card className="bg-muted/50 border-x-0 md:border-x rounded-none md:rounded-lg">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
                   {selectedIds.size} selected
                 </span>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={handleBulkMarkRead}>
+                  <Button variant="outline" size="sm" onClick={handleBulkMarkRead} className="h-10 md:h-8">
                     <Check className="h-4 w-4 mr-2" />
                     Mark read
                   </Button>
-                  <Button variant="outline" size="sm" onClick={handleBulkArchive}>
+                  <Button variant="outline" size="sm" onClick={handleBulkArchive} className="h-10 md:h-8">
                     <Archive className="h-4 w-4 mr-2" />
                     Archive
                   </Button>
@@ -184,8 +187,8 @@ const NotificationsPage: React.FC = () => {
         )}
 
         {/* Notifications List */}
-        <Card>
-          <CardHeader className="pb-3">
+        <Card className="border-0 md:border bg-transparent md:bg-card shadow-none md:shadow-sm">
+          <CardHeader className="px-4 md:px-6 pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5" />
@@ -196,19 +199,20 @@ const NotificationsPage: React.FC = () => {
                   <Checkbox
                     checked={selectedIds.size === filteredNotifications.length && filteredNotifications.length > 0}
                     onCheckedChange={handleSelectAll}
+                    className="h-5 w-5 md:h-4 md:w-4"
                   />
-                  <span className="text-sm text-muted-foreground">Select all</span>
+                  <span className="text-sm text-muted-foreground select-none">Select all</span>
                 </div>
               )}
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-0 md:px-6 pb-6">
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
             ) : filteredNotifications.length === 0 ? (
-              <div className="text-center py-12">
+              <div className="text-center py-12 px-4">
                 <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="font-medium text-lg">No notifications</h3>
                 <p className="text-muted-foreground">
@@ -216,23 +220,25 @@ const NotificationsPage: React.FC = () => {
                 </p>
               </div>
             ) : (
-              <ScrollArea className="h-[600px]">
+              <ScrollArea className="h-[600px] px-4 md:px-0">
                 <div className="space-y-6">
                   {Object.entries(groupedNotifications).map(([group, items]) => 
                     items.length > 0 && (
                       <div key={group}>
-                        <h3 className="text-sm font-medium text-muted-foreground mb-3">
+                        <h3 className="text-sm font-medium text-muted-foreground mb-3 px-2 md:px-0">
                           {group}
                         </h3>
                         <div className="space-y-2">
                           {items.map(notification => (
-                            <div key={notification.id} className="flex items-start gap-3">
-                              <Checkbox
-                                checked={selectedIds.has(notification.id)}
-                                onCheckedChange={() => handleSelectOne(notification.id)}
-                                className="mt-3"
-                              />
-                              <div className="flex-1">
+                            <div key={notification.id} className="flex items-start gap-1">
+                              <div className="pt-2 flex items-center justify-center min-h-[44px] min-w-[44px]">
+                                <Checkbox
+                                  checked={selectedIds.has(notification.id)}
+                                  onCheckedChange={() => handleSelectOne(notification.id)}
+                                  className="h-5 w-5"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
                                 <NotificationItem
                                   notification={notification}
                                   onMarkAsRead={markAsRead}

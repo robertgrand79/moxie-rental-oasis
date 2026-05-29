@@ -1,6 +1,7 @@
 import React, { lazy } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import { usePlatform } from '@/contexts/PlatformContext';
+import { Capacitor } from '@capacitor/core';
 
 // Platform pages (loaded lazily to optimize bundle size)
 const PlatformLayout = lazy(() => import('@/components/layouts/PlatformLayout'));
@@ -148,6 +149,125 @@ const PairTV = lazy(() => import('@/pages/tv/PairTV'));
 
 const AppRoutes: React.FC = () => {
   const { isPlatformSite, isPlatformAdminDomain } = usePlatform();
+  const isNative = Capacitor.isNativePlatform();
+
+  if (isNative) {
+    return (
+      <Routes>
+        <Route path="/" element={<Navigate to="/admin" replace />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/login" element={<Navigate to="/auth" replace />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/auth/confirm" element={<AuthConfirm />} />
+        <Route path="/acknowledge" element={<AcknowledgePage />} />
+        <Route path="/contractor/:token" element={<ContractorPortal />} />
+        <Route path="/accept-invite" element={<AcceptInvitation />} />
+        <Route path="/status" element={<Navigate to="/admin/status" replace />} />
+        <Route path="/newsletter/:id" element={<NewsletterWebView />} />
+
+        <Route path="/create-organization" element={<ProtectedRoute><OrganizationSignup /></ProtectedRoute>} />
+        <Route path="/admin/onboarding" element={<ProtectedRoute><OnboardingWizard /></ProtectedRoute>} />
+
+        <Route path="/admin" element={<ProtectedRoute><AdminDomainGuard><AdminLayoutWrapper /></AdminDomainGuard></ProtectedRoute>}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="blog" element={<BlogManagement />} />
+          <Route path="properties" element={<AdminProperties />} />
+          <Route path="properties/:propertyId" element={<AdminProperties />} />
+          <Route path="pages" element={<AdminPageManagement />} />
+          <Route path="settings" element={<Navigate to="/admin/settings/general" replace />} />
+          <Route path="settings/setup" element={<SetupWizardPage />} />
+          <Route path="settings/general" element={<GeneralSettingsPage />} />
+          <Route path="settings/domain" element={<DomainSettingsPage />} />
+          <Route path="settings/billing" element={<BillingSettingsPage />} />
+          <Route path="settings/site-info" element={<SiteInfoSettingsPage />} />
+          <Route path="settings/navigation" element={<NavigationSettingsPage />} />
+          <Route path="settings/hero" element={<HeroSettingsPage />} />
+          <Route path="settings/about" element={<AboutSettingsPage />} />
+          <Route path="settings/contact" element={<ContactSettingsPage />} />
+          <Route path="settings/seo" element={<SEOSettingsPage />} />
+          <Route path="settings/analytics" element={<AnalyticsSettingsPage />} />
+          <Route path="settings/colors" element={<ColorsSettingsPage />} />
+          <Route path="settings/fonts" element={<FontsSettingsPage />} />
+          <Route path="settings/branding" element={<BrandingSettingsPage />} />
+          <Route path="settings/users" element={<UsersSettingsPage />} />
+          <Route path="settings/roles" element={<RolesSettingsPage />} />
+          <Route path="settings/notifications-settings" element={<NotificationsSettingsPage />} />
+          <Route path="settings/ai-assistant" element={<AIAssistantSettingsPage />} />
+          <Route path="settings/communications" element={<CommunicationsSettingsPage />} />
+          <Route path="settings/smart-home" element={<SmartHomeSettingsPage />} />
+          <Route path="settings/services" element={<ServicesSettingsPage />} />
+          <Route path="settings/stripe" element={<StripeSettingsPage />} />
+          <Route path="settings/pricelabs" element={<PriceLabsSettingsPage />} />
+          <Route path="settings/tv-devices" element={<TVDevicesSettingsPage />} />
+          <Route path="settings/organization" element={<Navigate to="/admin/settings/general" replace />} />
+          <Route path="settings/site-content" element={<Navigate to="/admin/settings/site-info" replace />} />
+          <Route path="settings/appearance" element={<Navigate to="/admin/settings/colors" replace />} />
+          <Route path="settings/team" element={<Navigate to="/admin/settings/users" replace />} />
+          <Route path="settings/integrations" element={<Navigate to="/admin/settings/ai-assistant" replace />} />
+          <Route path="settings/payments" element={<Navigate to="/admin/settings/stripe" replace />} />
+          <Route path="settings/local-content" element={<Navigate to="/admin/settings/site-info" replace />} />
+          <Route path="user-access-management" element={<Navigate to="/admin/settings/users" replace />} />
+          <Route path="organization" element={<Navigate to="/admin/settings/general" replace />} />
+          <Route path="newsletter" element={<AdminNewsletterManagement />} />
+          <Route path="events" element={<AdminEvents />} />
+          <Route path="places" element={<AdminPlaces />} />
+          <Route path="reviews" element={<AdminReviews />} />
+          <Route path="testimonials" element={<Navigate to="/admin/reviews" replace />} />
+          <Route path="work-orders" element={<AdminWorkOrders />} />
+          <Route path="contractors" element={<AdminContractors />} />
+          <Route path="turno-problems" element={<AdminTurnoProblems />} />
+          <Route path="checklists" element={<AdminChecklists />} />
+          <Route path="pricelabs" element={<AdminPriceLabs />} />
+          <Route path="analytics" element={<AdminUnifiedAnalytics />} />
+          <Route path="reports" element={<AdminReportsPage />} />
+          <Route path="system-administration" element={<AdminSystemAdministration />} />
+          <Route path="host/analytics" element={<HostAnalyticsPage />} />
+          <Route path="host/bookings" element={<HostBookingsPage />} />
+          <Route path="calendar" element={<BookingTimelinePage />} />
+          <Route path="host/communication" element={<HostCommunicationPage />} />
+          <Route path="host/inbox" element={<InboxPage />} />
+          <Route path="host/inbox/:threadId" element={<ConversationDetailPage />} />
+          <Route path="guest-experience" element={<GuestExperiencePage />} />
+          <Route path="guidebooks/:propertyId/edit" element={<GuidebookEditorPage />} />
+          <Route path="profile" element={<AdminProfile />} />
+          <Route path="ai-assistant" element={<AdminAIAssistant />} />
+          <Route path="help" element={<HelpCenterPage />} />
+          <Route path="my-requests" element={<MyRequestsPage />} />
+          <Route path="status" element={<StatusPage />} />
+        </Route>
+
+        <Route path="/admin/platform" element={<ProtectedRoute><AdminDomainGuard><PlatformAdminLayout /></AdminDomainGuard></ProtectedRoute>}>
+          <Route index element={<PlatformDashboard />} />
+          <Route path="organizations" element={<PlatformOrganizationsPage />} />
+          <Route path="users" element={<PlatformUsersPage />} />
+          <Route path="templates" element={<PlatformTemplatesPage />} />
+          <Route path="settings" element={<PlatformSettingsPage />} />
+          <Route path="monitoring" element={<PlatformMonitoringPage />} />
+          <Route path="help-center" element={<PlatformHelpCenterPage />} />
+          <Route path="inbox" element={<PlatformInboxPage />} />
+          <Route path="launch" element={<PlatformLaunchPage />} />
+          <Route path="audit" element={<PlatformAuditPage />} />
+          <Route path="lookup" element={<PlatformLookupPage />} />
+          <Route path="template-test" element={<PlatformTemplateTestPage />} />
+          <Route path="workflows" element={<TaskWorkflowsPage />} />
+          <Route path="ai-assistant" element={<AdminAIAssistant />} />
+          <Route path="help" element={<HelpCenterPage />} />
+          <Route path="my-requests" element={<MyRequestsPage />} />
+          <Route path="status" element={<StatusPage />} />
+          <Route path="email" element={<PlatformEmailPage />} />
+          <Route path="billing" element={<PlatformBillingPage />} />
+          <Route path="onboarding" element={<PlatformOnboardingPage />} />
+          <Route path="communications" element={<PlatformCommunicationsPage />} />
+          <Route path="roadmap" element={<PlatformRoadmapPage />} />
+          <Route path="notifications" element={<PlatformNotificationsPage />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    );
+  }
 
   // Admin subdomain (admin.staymoxie.com) - always redirect to Platform Command Center
   if (isPlatformAdminDomain) {

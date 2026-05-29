@@ -29,7 +29,7 @@ const AdminSidebar = () => {
   const { isPlatformAdmin, checkingAdmin } = usePlatformAdmin();
   const { state, toggleSidebar } = useSidebar();
   
-  const isCollapsed = state === 'collapsed';
+  const isCollapsed = isMobile ? false : state === 'collapsed';
   const logoUrl = settings.siteLogo || organization?.logo_url;
   const isLoading = settingsLoading || orgLoading;
 
@@ -54,7 +54,7 @@ const AdminSidebar = () => {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader>
+      <SidebarHeader style={isMobile ? { paddingTop: 'env(safe-area-inset-top)' } : undefined}>
         <div className={`${isMobile ? 'p-3' : 'p-4'} ${isCollapsed ? 'p-2' : ''}`}>
           <div className="flex items-center justify-between gap-2">
             {/* Logo/Name - hidden when collapsed, placeholder while loading */}

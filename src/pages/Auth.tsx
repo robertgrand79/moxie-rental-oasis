@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,10 +38,11 @@ const Auth = () => {
   // Check if user has any admin access (legacy admin OR organization admin)
   const hasAdminAccess = isAdmin || isOrgAdmin();
 
-  // Tenant branding
-  const siteName = settings?.site_name || 'Welcome';
-  const logoUrl = settings?.logo_url;
-  const heroImageUrl = settings?.hero_image_url;
+  // Tenant branding (overridden for native admin/operational app)
+  const isNative = Capacitor.isNativePlatform();
+  const siteName = isNative ? 'StayMoxie' : (settings?.site_name || 'Welcome');
+  const logoUrl = isNative ? '/moxie-logo.png' : settings?.logo_url;
+  const heroImageUrl = isNative ? undefined : settings?.hero_image_url;
 
   useEffect(() => {
     // Handle redirect once auth is complete

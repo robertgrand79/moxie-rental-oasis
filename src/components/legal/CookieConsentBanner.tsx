@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Link, useLocation } from 'react-router-dom';
 import { Cookie, Settings, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Capacitor } from '@capacitor/core';
 import {
   Dialog,
   DialogContent,
@@ -60,7 +61,8 @@ const CookieConsentBanner: React.FC = () => {
   // admin screens where it's least useful. This is scoped tightly: only
   // authenticated users on /admin/* paths. Anonymous visitors and the public
   // marketing site still see the banner.
-  const isAdminContext = !!user && pathname.startsWith('/admin');
+  const isNative = Capacitor.isNativePlatform();
+  const isAdminContext = isNative || (!!user && pathname.startsWith('/admin'));
 
   useEffect(() => {
     if (isAdminContext) {
@@ -105,7 +107,7 @@ const CookieConsentBanner: React.FC = () => {
     saveConsent(preferences);
   };
 
-  if (!isVisible) return null;
+  if (!isVisible || isNative) return null;
 
   return (
     <>

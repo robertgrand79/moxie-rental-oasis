@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Menu } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import AdminSidebar from './AdminSidebar';
 import OrganizationBadge from './OrganizationBadge';
 import OrganizationSwitcher from './OrganizationSwitcher';
@@ -23,6 +24,7 @@ interface AdminLayoutProps {
 
 const AdminLayout = ({ children }: AdminLayoutProps) => {
   const isMobile = useIsMobile();
+  const isNative = Capacitor.isNativePlatform();
   const queryClient = useQueryClient();
   const { organization, isPlatformMode } = useCurrentOrganization();
   const { isPlatformAdmin } = usePlatformAdmin();
@@ -86,7 +88,13 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             <ContextBanner />
             {/* Trial Banner - sticky at top */}
             <TrialBanner />
-            <header className={`flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background ${isMobile ? 'px-3' : ''}`}>
+            <header 
+              className={`flex shrink-0 items-center gap-2 border-b px-4 bg-background ${isMobile ? 'px-3' : ''}`}
+              style={{
+                height: isNative ? 'calc(64px + env(safe-area-inset-top))' : '64px',
+                paddingTop: isNative ? 'env(safe-area-inset-top)' : '0px'
+              }}
+            >
               <div className="flex items-center justify-between w-full gap-4">
                 <div className="flex items-center gap-2">
                   {/* Mobile menu trigger - only visible on mobile */}

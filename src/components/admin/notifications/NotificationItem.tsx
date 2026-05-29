@@ -130,7 +130,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
             </div>
             <p className={cn(
               'text-xs text-muted-foreground mt-0.5',
-              expanded ? 'whitespace-normal' : 'truncate'
+              expanded ? 'whitespace-normal' : 'line-clamp-2 md:truncate'
             )}>
               {notification.message}
             </p>
@@ -166,28 +166,28 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
 
       {/* Actions */}
       <div 
-        className="flex-shrink-0 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" 
+        className="flex-shrink-0 flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity" 
         onClick={(e) => e.stopPropagation()}
       >
         {!notification.is_read && (
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-primary"
+            className="h-10 w-10 md:h-7 md:w-7 text-muted-foreground hover:text-primary flex items-center justify-center"
             onClick={() => onMarkAsRead(notification.id)}
             title="Mark as read"
           >
-            <CheckCircle className="h-4 w-4" />
+            <CheckCircle className="h-5 w-5 md:h-4 md:w-4" />
           </Button>
         )}
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+          className="h-10 w-10 md:h-7 md:w-7 text-muted-foreground hover:text-destructive flex items-center justify-center"
           onClick={() => onArchive(notification.id)}
           title="Dismiss"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5 md:h-4 md:w-4" />
         </Button>
       </div>
     </div>

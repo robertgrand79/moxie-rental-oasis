@@ -15,6 +15,8 @@
     "@capacitor/cli": "^7.4.3",
     "@capacitor/core": "^7.4.3",
     "@capacitor/ios": "^7.4.3",
+    "@capacitor/keyboard": "^8.0.3",
+    "@capacitor/preferences": "^8.0.1",
     "@capacitor/push-notifications": "^8.0.0",
     "@craftjs/core": "^0.2.12",
     "@craftjs/layers": "^0.2.7",
@@ -99,6 +101,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@eslint/js": "^9.9.0",
     "@tailwindcss/typography": "^0.5.15",
     "@types/node": "^22.5.5",

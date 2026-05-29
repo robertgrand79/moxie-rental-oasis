@@ -113,18 +113,18 @@ const MyRequestsPage: React.FC = () => {
   const feedbackCount = items?.filter(i => i.type === 'feedback').length || 0;
 
   return (
-    <div className="container py-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-0 py-4 md:p-6 max-w-7xl mx-auto space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold">My Requests</h1>
           <p className="text-muted-foreground">View your support tickets and feedback submissions</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowNewFeedback(true)}>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button variant="outline" onClick={() => setShowNewFeedback(true)} className="flex-1 sm:flex-none">
             <Lightbulb className="h-4 w-4 mr-2" />
             Feedback
           </Button>
-          <Button onClick={() => setShowNewTicket(true)}>
+          <Button onClick={() => setShowNewTicket(true)} className="flex-1 sm:flex-none">
             <Plus className="h-4 w-4 mr-2" />
             New Ticket
           </Button>
@@ -132,33 +132,35 @@ const MyRequestsPage: React.FC = () => {
       </div>
 
       {/* Type Tabs */}
-      <Tabs value={typeFilter} onValueChange={setTypeFilter}>
-        <TabsList>
-          <TabsTrigger value="all">All ({items?.length || 0})</TabsTrigger>
-          <TabsTrigger value="support">
-            <Ticket className="h-3 w-3 mr-1" />
-            Support ({supportCount})
-          </TabsTrigger>
-          <TabsTrigger value="feedback">
-            <Lightbulb className="h-3 w-3 mr-1" />
-            Feedback ({feedbackCount})
-          </TabsTrigger>
-        </TabsList>
+      <Tabs value={typeFilter} onValueChange={setTypeFilter} className="w-full">
+        <div className="w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-4 px-4 md:mx-0 md:px-0">
+          <TabsList className="inline-flex w-max min-w-full justify-start rounded-md bg-muted p-1 text-muted-foreground gap-1">
+            <TabsTrigger value="all">All ({items?.length || 0})</TabsTrigger>
+            <TabsTrigger value="support">
+              <Ticket className="h-3 w-3 mr-1" />
+              Support ({supportCount})
+            </TabsTrigger>
+            <TabsTrigger value="feedback">
+              <Lightbulb className="h-3 w-3 mr-1" />
+              Feedback ({feedbackCount})
+            </TabsTrigger>
+          </TabsList>
+        </div>
       </Tabs>
 
       {/* Filters */}
-      <div className="flex gap-4">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1 w-full sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search requests..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-10 w-full"
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-full sm:w-40">
             <Filter className="h-4 w-4 mr-2" />
             <SelectValue placeholder="Status" />
           </SelectTrigger>

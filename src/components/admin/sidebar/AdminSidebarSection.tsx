@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, ChevronDown, ChevronRight } from 'lucide-react';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -33,12 +33,22 @@ const AdminSidebarSection = ({ title, items }: AdminSidebarSectionProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const { state } = useSidebar();
+  const { state, setOpenMobile } = useSidebar();
   
-  const isCollapsed = state === 'collapsed';
+  const isCollapsed = isMobile ? false : state === 'collapsed';
+  
+  const hasActiveItem = items.some(item => location.pathname === item.href);
+  const [isOpen, setIsOpen] = useState(() => {
+    if (!isMobile) return true;
+    return title === 'Overview' || hasActiveItem;
+  });
 
   const handleItemClick = (item: MenuItem, event: React.MouseEvent) => {
     const isActive = location.pathname === item.href;
+    
+    if (isMobile) {
+      setOpenMobile(false);
+    }
     
     // If clicking the same active menu item, force a navigation reset
     if (isActive) {
@@ -54,64 +64,75 @@ const AdminSidebarSection = ({ title, items }: AdminSidebarSectionProps) => {
   };
 
   return (
-    <SidebarGroup>
+    <SidebarGroup className={isMobile ? "border-b border-border/50 pb-2" : ""}>
       {!isCollapsed && (
-        <SidebarGroupLabel className={`text-xs font-semibold text-gray-500 uppercase tracking-wider ${isMobile ? 'px-3' : ''}`}>
-          {title}
+        <SidebarGroupLabel 
+          onClick={isMobile ? () => setIsOpen(!isOpen) : undefined}
+          className={cn(
+            "text-xs font-semibold text-gray-500 uppercase tracking-wider select-none",
+            isMobile && "px-3 py-3 flex items-center justify-between cursor-pointer hover:bg-muted/50 rounded-md active:bg-muted"
+          )}
+        >
+          <span>{title}</span>
+          {isMobile && (
+            isOpen ? <ChevronDown className="h-4.5 w-4.5 text-gray-400" /> : <ChevronRight className="h-4.5 w-4.5 text-gray-400" />
+          )}
         </SidebarGroupLabel>
       )}
-      <SidebarGroupContent>
-        <SidebarMenu>
-          {items.map((item) => {
-            const IconComponent = item.icon;
-            const isActive = location.pathname === item.href;
-            
-            return (
-              <SidebarMenuItem key={item.href}>
-                {isCollapsed ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <SidebarMenuButton 
-                        asChild 
-                        isActive={isActive}
-                        className="justify-center"
-                      >
-                        <Link 
-                          to={item.href} 
-                          className="flex items-center justify-center"
-                          onClick={(e) => handleItemClick(item, e)}
+      {isOpen && (
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {items.map((item) => {
+              const IconComponent = item.icon;
+              const isActive = location.pathname === item.href;
+              
+              return (
+                <SidebarMenuItem key={item.href}>
+                  {isCollapsed ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuButton 
+                          asChild 
+                          isActive={isActive}
+                          className="justify-center"
                         >
-                          <IconComponent className="h-5 w-5 text-gray-600" />
-                        </Link>
-                      </SidebarMenuButton>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">
-                      {item.title}
-                    </TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={isActive}
-                    className={isMobile ? 'min-h-[44px]' : ''}
-                  >
-                    <Link 
-                      to={item.href} 
-                      className={`flex items-center space-x-3 ${isMobile ? 'px-3 py-3' : ''}`}
-                      onClick={(e) => handleItemClick(item, e)}
-                    >
-                      <IconComponent className="h-5 w-5 text-gray-600" />
-                      <span className={`font-medium ${isMobile ? 'text-sm' : ''}`}>
+                          <Link 
+                            to={item.href} 
+                            className="flex items-center justify-center"
+                            onClick={(e) => handleItemClick(item, e)}
+                          >
+                            <IconComponent className="h-5 w-5 text-gray-600" />
+                          </Link>
+                        </SidebarMenuButton>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
                         {item.title}
-                      </span>
-                    </Link>
-                  </SidebarMenuButton>
-                )}
-              </SidebarMenuItem>
-            );
-          })}
-        </SidebarMenu>
-      </SidebarGroupContent>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <SidebarMenuButton 
+                      asChild 
+                      isActive={isActive}
+                      className={isMobile ? 'min-h-[44px]' : ''}
+                    >
+                      <Link 
+                        to={item.href} 
+                        className={`flex items-center space-x-3 ${isMobile ? 'px-3 py-3' : ''}`}
+                        onClick={(e) => handleItemClick(item, e)}
+                      >
+                        <IconComponent className="h-5 w-5 text-gray-600" />
+                        <span className={`font-medium ${isMobile ? 'text-sm' : ''}`}>
+                          {item.title}
+                        </span>
+                      </Link>
+                    </SidebarMenuButton>
+                  )}
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      )}
     </SidebarGroup>
   );
 };

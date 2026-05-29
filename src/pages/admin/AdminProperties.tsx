@@ -106,7 +106,7 @@ const AdminProperties = () => {
       description={`Manage your rental properties and listings (${totalCount} properties)`}
       actions={pageActions}
     >
-      <div className={isMobile ? 'p-4' : 'p-6'}>
+      <div className="p-0 py-4 md:p-6">
         {/* Show helpful link when no properties */}
         {!showAddForm && totalCount === 0 && (
           <Alert className="mb-6">

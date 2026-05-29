@@ -14,6 +14,7 @@ import CookieConsentBanner from './components/legal/CookieConsentBanner';
 import { ErrorBoundary } from './components/ui/error-boundary';
 import { WidgetErrorBoundary } from './components/error-boundaries/WidgetErrorBoundary';
 import { RUMProvider } from './providers/RUMProvider';
+import { MobilePushInitializer } from './components/MobilePushInitializer';
 
 // Note: QueryClient is created in main.tsx - single instance for entire app
 
@@ -37,6 +38,7 @@ function App() {
                     <StaticSettingsProvider>
                       <GlobalThemeProvider>
                         <AppRoutes />
+                        <MobilePushInitializer />
                         <WidgetErrorBoundary widgetName="Chat Widget" silent>
                           <PublicChatWidget />
                         </WidgetErrorBoundary>

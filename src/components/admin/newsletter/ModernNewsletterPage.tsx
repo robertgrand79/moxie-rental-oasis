@@ -173,7 +173,7 @@ const ModernNewsletterPage = () => {
           </div>
           
           {/* Right side: Secondary actions + Create */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>

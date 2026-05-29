@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,13 +7,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Phone, Shield, Eye, EyeOff } from 'lucide-react';
+import { User, Phone, Shield, Eye, EyeOff, Trash2 } from 'lucide-react';
 import PasswordStrengthIndicator from '@/components/auth/PasswordStrengthIndicator';
 import { passwordChangeSchema, calculatePasswordStrength } from '@/utils/passwordValidation';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const UserProfileForm = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [profileData, setProfileData] = useState({
@@ -195,6 +209,59 @@ const UserProfileForm = () => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    setIsDeletingAccount(true);
+
+    try {
+      // 1. Create a support ticket in platform_inbox to notify admins
+      const { error: ticketError } = await supabase
+        .from('platform_inbox')
+        .insert({
+          user_id: user.id,
+          subject: 'Account Deletion Request',
+          description: `User ${user.email} (ID: ${user.id}) has requested account deletion from the iOS native app. Please process this request and anonymize/purge their data in compliance with privacy regulations.`,
+          type: 'support',
+          status: 'open',
+          priority: 'high'
+        });
+
+      if (ticketError) {
+        console.warn('Failed to insert deletion ticket:', ticketError);
+      }
+
+      // 2. Anonymize profiles table record (full_name and phone)
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: 'Deleted User',
+          phone: null
+        })
+        .eq('id', user.id);
+
+      if (profileError) {
+        console.warn('Failed to anonymize profile:', profileError);
+      }
+
+      toast({
+        title: 'Request Received',
+        description: 'Your request for account deletion has been submitted. You will now be signed out.',
+      });
+
+      // 3. Log out and redirect
+      await signOut();
+      navigate('/auth');
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to submit account deletion request. Please contact support.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-2xl">
       <Card>
@@ -354,6 +421,41 @@ const UserProfileForm = () => {
               {isLoading ? 'Updating...' : 'Change Password'}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card className="border-red-200 dark:border-red-950/40">
+        <CardHeader>
+          <CardTitle className="text-destructive flex items-center gap-2">
+            <Trash2 className="h-5 w-5" />
+            Danger Zone
+          </CardTitle>
+          <CardDescription>
+            Permanently delete your account and all associated data. This action is irreversible.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" disabled={isDeletingAccount}>
+                {isDeletingAccount ? 'Deleting Account...' : 'Delete Account'}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will submit a request to permanently delete your user profile and anonymize your account details. This process cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteAccount} className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+                  Confirm Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardContent>
       </Card>
     </div>

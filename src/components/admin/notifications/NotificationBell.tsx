@@ -68,7 +68,11 @@ const NotificationBell: React.FC = () => {
         <SheetTrigger asChild>
           {triggerButton}
         </SheetTrigger>
-        <SheetContent side="right" className="w-[min(24rem,100vw)] p-0 sm:max-w-sm">
+        <SheetContent 
+          side="right" 
+          className="w-[min(24rem,100vw)] p-0 sm:max-w-sm"
+          style={{ paddingTop: 'env(safe-area-inset-top)' }}
+        >
           {panel}
         </SheetContent>
       </Sheet>

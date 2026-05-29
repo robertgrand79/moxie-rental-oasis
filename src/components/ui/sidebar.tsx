@@ -204,7 +204,7 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
-            <div className="flex h-full w-full flex-col">{children}</div>
+            <div className="flex h-full w-full flex-col min-h-0 max-h-full">{children}</div>
           </SheetContent>
         </Sheet>
       )
@@ -260,7 +260,7 @@ Sidebar.displayName = "Sidebar"
 const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button>
->(({ className, onClick, ...props }, ref) => {
+>(({ className, onClick, children, ...props }, ref) => {
   const { toggleSidebar } = useSidebar()
 
   return (
@@ -276,7 +276,7 @@ const SidebarTrigger = React.forwardRef<
       }}
       {...props}
     >
-      <PanelLeft />
+      {children || <PanelLeft />}
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )

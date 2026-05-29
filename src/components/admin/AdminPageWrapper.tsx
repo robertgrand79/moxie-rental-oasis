@@ -52,19 +52,19 @@ const AdminPageWrapper = ({ children, title, description, actions }: AdminPageWr
   return (
     <div className="min-h-screen bg-background">
       <div className="bg-card shadow-sm border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center space-x-3">
-              <Shield className="h-6 w-6 text-primary" />
+              <Shield className="h-5 w-5 md:h-6 md:w-6 text-primary shrink-0" />
               <div>
-                <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+                <h1 className="text-xl md:text-2xl font-bold text-foreground">{title}</h1>
                 {description && (
-                  <p className="text-sm text-muted-foreground mt-1">{description}</p>
+                  <p className="text-xs md:text-sm text-muted-foreground mt-0.5">{description}</p>
                 )}
               </div>
             </div>
             {actions && (
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
                 {actions}
               </div>
             )}

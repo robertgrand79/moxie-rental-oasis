@@ -282,14 +282,14 @@ const BookingTimelinePage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold">Calendar Management</h1>
           <p className="text-muted-foreground">
             View bookings, manage pricing, and sync external calendars
           </p>
         </div>
-        <Button onClick={handleSyncAll} disabled={syncingAll || totalCalendars === 0}>
+        <Button onClick={handleSyncAll} disabled={syncingAll || totalCalendars === 0} className="w-full sm:w-auto">
           {syncingAll ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
           Sync All Calendars
         </Button>
@@ -324,28 +324,30 @@ const BookingTimelinePage = () => {
       </div>
       
       <Tabs defaultValue="calendar" className="w-full">
-        <TabsList className="grid w-full max-w-3xl grid-cols-5">
-          <TabsTrigger value="calendar" className="gap-2">
-            <CalendarDays className="h-4 w-4" />
-            Calendar
-          </TabsTrigger>
-          <TabsTrigger value="monthly" className="gap-2">
-            <LayoutGrid className="h-4 w-4" />
-            Monthly
-          </TabsTrigger>
-          <TabsTrigger value="pricing" className="gap-2">
-            <DollarSign className="h-4 w-4" />
-            Pricing
-          </TabsTrigger>
-          <TabsTrigger value="sync" className="gap-2">
-            <RefreshCw className="h-4 w-4" />
-            Sync
-          </TabsTrigger>
-          <TabsTrigger value="export" className="gap-2">
-            <Upload className="h-4 w-4" />
-            Export
-          </TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-4 px-4 md:mx-0 md:px-0">
+          <TabsList className="inline-flex w-max min-w-full justify-start rounded-md bg-muted p-1 text-muted-foreground gap-1">
+            <TabsTrigger value="calendar" className="gap-2">
+              <CalendarDays className="h-4 w-4" />
+              Calendar
+            </TabsTrigger>
+            <TabsTrigger value="monthly" className="gap-2">
+              <LayoutGrid className="h-4 w-4" />
+              Monthly
+            </TabsTrigger>
+            <TabsTrigger value="pricing" className="gap-2">
+              <DollarSign className="h-4 w-4" />
+              Pricing
+            </TabsTrigger>
+            <TabsTrigger value="sync" className="gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Sync
+            </TabsTrigger>
+            <TabsTrigger value="export" className="gap-2">
+              <Upload className="h-4 w-4" />
+              Export
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="calendar" className="mt-6">
           <UnifiedCalendarView />

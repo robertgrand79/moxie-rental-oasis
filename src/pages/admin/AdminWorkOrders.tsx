@@ -173,7 +173,7 @@ const AdminWorkOrders = () => {
   }
 
   return (
-    <div className="space-y-6 bg-muted/30 min-h-screen p-6">
+    <div className="space-y-6 min-h-screen p-0 py-4 md:p-6">
       <ModernWorkOrdersHeader
         totalWorkOrders={totalWorkOrders}
         pendingWorkOrders={pendingWorkOrders}

@@ -37,7 +37,7 @@ const AdminSidebarFooter = () => {
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   const { state } = useSidebar();
-  const isCollapsed = state === 'collapsed';
+  const isCollapsed = isMobile ? false : state === 'collapsed';
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [editData, setEditData] = useState({
@@ -196,7 +196,10 @@ const AdminSidebarFooter = () => {
 
   return (
     <SidebarFooter>
-      <div className="border-t border-border p-4">
+      <div 
+        className="border-t border-border p-4"
+        style={isMobile ? { paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' } : undefined}
+      >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
