@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserPlus, Mail, Shield, MoreHorizontal, Users, Edit, Trash2, Search, Download, Link } from 'lucide-react';
+import { UserPlus, Mail, Shield, MoreHorizontal, Users, Edit, Trash2, Search, Download, Link, Key } from 'lucide-react';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,12 +24,15 @@ import UserInviteModal from '@/components/admin/UserInviteModal';
 import UserProfileModal from '@/components/admin/UserProfileModal';
 import UserPermissionDiagnostics from '@/components/admin/UserPermissionDiagnostics';
 import AddExistingUserModal from '@/components/admin/AddExistingUserModal';
+import ChangePasswordModal from '@/components/admin/ChangePasswordModal';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
 
 const UserManagementTab = () => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isAddExistingUserModalOpen, setIsAddExistingUserModalOpen] = useState(false);
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
@@ -43,9 +46,11 @@ const UserManagementTab = () => {
     updateUserRole, 
     deleteUser, 
     deactivateUser,
+    adminUpdateUserPassword,
     inviteUser,
     searchUsers,
-    bulkUpdateUserRoles
+    bulkUpdateUserRoles,
+    resetPassword
   } = useUserManagement();
   const { user: currentUser } = useAuth();
 
@@ -54,6 +59,27 @@ const UserManagementTab = () => {
   const handleEditUser = (user) => {
     setSelectedUser(user);
     setIsProfileModalOpen(true);
+  };
+
+  const handleChangePasswordClick = (user) => {
+    setSelectedUser(user);
+    setIsChangePasswordModalOpen(true);
+  };
+
+  const handleSendResetEmail = async (email: string) => {
+    const { error } = await resetPassword(email);
+    if (error) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to send password reset email',
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: 'Success',
+        description: `Password reset email sent to ${email}`,
+      });
+    }
   };
 
   const handleDeleteUser = async (userId: string) => {
@@ -314,6 +340,14 @@ const UserManagementTab = () => {
                             <Edit className="mr-2 h-4 w-4" />
                             Edit Profile
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleChangePasswordClick(user)}>
+                            <Key className="mr-2 h-4 w-4" />
+                            Change Password
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleSendResetEmail(user.email)}>
+                            <Mail className="mr-2 h-4 w-4" />
+                            Send Reset Email
+                          </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleRoleChange(user.id, user.role === 'admin' ? 'user' : 'admin')}
                           >
@@ -365,6 +399,12 @@ const UserManagementTab = () => {
         isOpen={isAddExistingUserModalOpen}
         onClose={() => setIsAddExistingUserModalOpen(false)}
         onSuccess={fetchUsers}
+      />
+      <ChangePasswordModal
+        isOpen={isChangePasswordModalOpen}
+        onClose={() => setIsChangePasswordModalOpen(false)}
+        user={selectedUser}
+        onConfirm={adminUpdateUserPassword}
       />
     </div>
   );

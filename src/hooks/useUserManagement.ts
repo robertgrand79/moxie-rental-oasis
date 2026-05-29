@@ -5,7 +5,7 @@ import { useUserFetch } from './user-management/useUserFetch';
 import { useUserOperations } from './user-management/useUserOperations';
 
 export const useUserManagement = () => {
-  const { user } = useAuth();
+  const { user, resetPassword } = useAuth();
   const {
     users,
     loading,
@@ -19,6 +19,7 @@ export const useUserManagement = () => {
     updateUserRole,
     deleteUser,
     deactivateUser,
+    adminUpdateUserPassword,
     inviteUser,
     bulkUpdateUserRoles
   } = useUserOperations();
@@ -38,8 +39,10 @@ export const useUserManagement = () => {
     updateUserRole,
     deleteUser,
     deactivateUser,
+    adminUpdateUserPassword,
     inviteUser,
     searchUsers,
     bulkUpdateUserRoles,
+    resetPassword,
   };
 };

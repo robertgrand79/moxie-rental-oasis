@@ -186,6 +186,39 @@ export const useUserOperations = () => {
     }
   };
 
+  const adminUpdateUserPassword = async (userId: string, newPassword: string): Promise<boolean> => {
+    try {
+      setLoading(true);
+      
+      if (!organization?.id) {
+        throw new Error('Organization context required');
+      }
+      
+      const { error } = await supabase.functions.invoke('admin-update-user-password', {
+        body: { userId, organizationId: organization.id, password: newPassword }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'User password updated successfully',
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error updating user password:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update user password',
+        variant: 'destructive',
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const inviteUser = async (invitation: UserInvitation): Promise<boolean> => {
     try {
       setLoading(true);
@@ -301,6 +334,7 @@ export const useUserOperations = () => {
     updateUserRole,
     deleteUser,
     deactivateUser,
+    adminUpdateUserPassword,
     inviteUser,
     bulkUpdateUserRoles,
     loading
