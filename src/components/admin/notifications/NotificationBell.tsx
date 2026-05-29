@@ -71,7 +71,7 @@ const NotificationBell: React.FC = () => {
         <SheetContent 
           side="right" 
           className="w-[min(24rem,100vw)] p-0 sm:max-w-sm"
-          style={{ paddingTop: 'env(safe-area-inset-top)' }}
+          style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
         >
           {panel}
         </SheetContent>

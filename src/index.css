@@ -258,9 +258,9 @@
     padding-right: env(safe-area-inset-right);
   }
   .pb-safe {
-    padding-bottom: calc(env(safe-area-inset-bottom) + var(--pb-offset, 0px));
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--pb-offset, 0px));
   }
   .pt-safe {
-    padding-top: calc(env(safe-area-inset-top) + var(--pt-offset, 0px));
+    padding-top: calc(env(safe-area-inset-top, 0px) + var(--pt-offset, 0px));
   }
 }

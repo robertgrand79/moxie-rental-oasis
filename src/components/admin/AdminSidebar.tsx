@@ -54,7 +54,7 @@ const AdminSidebar = () => {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader style={isMobile ? { paddingTop: 'env(safe-area-inset-top)' } : undefined}>
+      <SidebarHeader style={isMobile ? { paddingTop: 'env(safe-area-inset-top, 0px)' } : undefined}>
         <div className={`${isMobile ? 'p-3' : 'p-4'} ${isCollapsed ? 'p-2' : ''}`}>
           <div className="flex items-center justify-between gap-2">
             {/* Logo/Name - hidden when collapsed, placeholder while loading */}

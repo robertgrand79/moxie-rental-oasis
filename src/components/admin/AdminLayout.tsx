@@ -91,8 +91,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
             <header 
               className={`flex shrink-0 items-center gap-2 border-b px-4 bg-background ${isMobile ? 'px-3' : ''}`}
               style={{
-                height: isNative ? 'calc(64px + env(safe-area-inset-top))' : '64px',
-                paddingTop: isNative ? 'env(safe-area-inset-top)' : '0px'
+                height: isNative ? 'calc(64px + env(safe-area-inset-top, 0px))' : '64px',
+                paddingTop: isNative ? 'env(safe-area-inset-top, 0px)' : '0px'
               }}
             >
               <div className="flex items-center justify-between w-full gap-4">
@@ -147,9 +147,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                 </div>
               </div>
             </header>
-            <main className={`flex-1 overflow-auto ${isMobile ? 'p-4' : 'p-8'}`}>
+            <div className={`flex-1 overflow-auto ${isMobile ? 'p-4' : 'p-8'}`}>
               {children}
-            </main>
+            </div>
           </SidebarInset>
           
           {/* Support Widget */}

@@ -198,7 +198,7 @@ const AdminSidebarFooter = () => {
     <SidebarFooter>
       <div 
         className="border-t border-border p-4"
-        style={isMobile ? { paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' } : undefined}
+        style={isMobile ? { paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' } : undefined}
       >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
