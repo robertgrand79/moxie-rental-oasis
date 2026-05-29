@@ -20,6 +20,7 @@ export const useUserManagement = () => {
     deleteUser,
     deactivateUser,
     adminUpdateUserPassword,
+    adminGenerateResetLink,
     inviteUser,
     bulkUpdateUserRoles
   } = useUserOperations();
@@ -40,6 +41,7 @@ export const useUserManagement = () => {
     deleteUser,
     deactivateUser,
     adminUpdateUserPassword,
+    adminGenerateResetLink,
     inviteUser,
     searchUsers,
     bulkUpdateUserRoles,

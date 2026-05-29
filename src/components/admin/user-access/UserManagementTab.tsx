@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserPlus, Mail, Shield, MoreHorizontal, Users, Edit, Trash2, Search, Download, Link, Key } from 'lucide-react';
+import { UserPlus, Mail, Shield, MoreHorizontal, Users, Edit, Trash2, Search, Download, Link, Key, Copy } from 'lucide-react';
 import { EnhancedButton } from '@/components/ui/enhanced-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -47,6 +47,7 @@ const UserManagementTab = () => {
     deleteUser, 
     deactivateUser,
     adminUpdateUserPassword,
+    adminGenerateResetLink,
     inviteUser,
     searchUsers,
     bulkUpdateUserRoles,
@@ -79,6 +80,22 @@ const UserManagementTab = () => {
         title: 'Success',
         description: `Password reset email sent to ${email}`,
       });
+    }
+  };
+
+  const handleCopyResetLink = async (email: string) => {
+    const link = await adminGenerateResetLink(email);
+    if (link) {
+      try {
+        await navigator.clipboard.writeText(link);
+        toast({
+          title: 'Success',
+          description: `Reset link copied to clipboard for ${email}`,
+        });
+      } catch (err) {
+        console.error('Clipboard copy failed:', err);
+        window.prompt('Copy password reset link manually:', link);
+      }
     }
   };
 
@@ -347,6 +364,10 @@ const UserManagementTab = () => {
                           <DropdownMenuItem onClick={() => handleSendResetEmail(user.email)}>
                             <Mail className="mr-2 h-4 w-4" />
                             Send Reset Email
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleCopyResetLink(user.email)}>
+                            <Copy className="mr-2 h-4 w-4" />
+                            Copy Reset Link
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleRoleChange(user.id, user.role === 'admin' ? 'user' : 'admin')}

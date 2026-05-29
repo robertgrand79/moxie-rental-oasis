@@ -219,6 +219,34 @@ export const useUserOperations = () => {
     }
   };
 
+  const adminGenerateResetLink = async (email: string): Promise<string | null> => {
+    try {
+      setLoading(true);
+      
+      if (!organization?.id) {
+        throw new Error('Organization context required');
+      }
+      
+      const { data, error } = await supabase.functions.invoke('admin-generate-reset-link', {
+        body: { email, organizationId: organization.id }
+      });
+
+      if (error) throw error;
+
+      return data?.link || null;
+    } catch (error) {
+      console.error('Error generating reset link:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to generate reset link',
+        variant: 'destructive',
+      });
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const inviteUser = async (invitation: UserInvitation): Promise<boolean> => {
     try {
       setLoading(true);
@@ -335,6 +363,7 @@ export const useUserOperations = () => {
     deleteUser,
     deactivateUser,
     adminUpdateUserPassword,
+    adminGenerateResetLink,
     inviteUser,
     bulkUpdateUserRoles,
     loading
